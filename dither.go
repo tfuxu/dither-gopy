@@ -38,7 +38,7 @@ type Ditherer struct {
 	Matrix ErrorDiffusionMatrix
 
 	// Mapper is the ColorMapper function for dithering.
-	Mapper PixelMapper
+	mapper pixelMapper
 
 	// Special is the special dithering algorithm that's being used. The default
 	// value of 0 indicates that no special dithering algorithm is being used.
@@ -94,6 +94,44 @@ func NewDitherer(palette []color.Color) *Ditherer {
 	return d
 }
 
+// Sets Bayer PixelMapper to Ditherer stuct.
+//
+// The provided dimensions of the bayer matrix [x,y] can only be powers of 2, but they do not need to be the same.
+// If they are not powers of two, this function will panic.
+//
+// Refer to documentation for `Bayer` function to get more information:
+// https://pkg.go.dev/github.com/makeworld-the-better-one/dither/v2#Bayer
+func (d *Ditherer) SetBayer(x, y uint, strength float32) {
+	d.mapper = bayer(x, y, strength)
+}
+
+// SetOrdered sets a dither matrix as a PixelMapper to Ditherer stuct.
+// Refer to documentation for `PixelMapperFromMatrix` function to get more information:
+// https://pkg.go.dev/github.com/makeworld-the-better-one/dither/v2#PixelMapperFromMatrix
+func (d *Ditherer) SetOrdered(odm OrderedDitherMatrix, strength float32) {
+	d.mapper = pixelMapperFromMatrix(odm, strength)
+}
+
+// SetRandomGrayscale generates a grayscale random noise dithering and sets it to Ditherer stuct.
+// Refer to documentation for `RandomNoiseGrayscale` function to get more information:
+// https://pkg.go.dev/github.com/makeworld-the-better-one/dither/v2#RandomNoiseGrayscale
+func (d *Ditherer) SetRandomGrayscale(min, max float32) {
+	d.mapper = randomNoiseGrayscale(min, max)
+}
+
+// SetRandomRGB generates a random noise dithering in RGB format and sets it to Ditherer stuct.
+// Refer to documentation for `RandomNoiseRGB` function to get more information:
+// https://pkg.go.dev/github.com/makeworld-the-better-one/dither/v2#RandomNoiseRGB
+func (d *Ditherer) SetRandomRGB(minR, maxR, minG, maxG, minB, maxB float32) {
+	d.mapper = randomNoiseRGB(minR, maxR, minG, maxG, minB, maxB)
+}
+
+// ClearMapper clears out Mapper field of Ditherer struct.
+// Useful if you want to reuse Ditherer object for the next dithering.
+func (d *Ditherer) ClearMapper() {
+	d.mapper = nil
+}
+
 // invalid returns true when the current struct fields of the Ditherer make it
 // impossible to dither.
 func (d *Ditherer) invalid() bool {
@@ -101,7 +139,7 @@ func (d *Ditherer) invalid() bool {
 	// unset or not. The if statement evaluates to true if one is set, but
 	// false if none or more than one are set. But then it's flipped with !()
 	// on the outside.
-	if !((d.Mapper != nil) != ((d.Matrix != nil) != (d.Special != 0))) {
+	if !((d.mapper != nil) != ((d.Matrix != nil) != (d.Special != 0))) {
 		return true
 	}
 	if d.Special != 0 {
@@ -261,7 +299,7 @@ func (d *Ditherer) Dither(src image.Image) image.Image {
 		img = copyOfImage(src)
 	}
 
-	if d.Mapper != nil {
+	if d.mapper != nil {
 		workers := 1
 		if !d.SingleThreaded {
 			workers = runtime.GOMAXPROCS(0)
@@ -278,7 +316,7 @@ func (d *Ditherer) Dither(src image.Image) image.Image {
 				// Use PixelMapper -> find closest palette color -> get that color
 				// -> cast to color.RGBA64
 				// Comes from d.palette so this cast will always work
-				d.palette[d.closestColor(d.Mapper(x, y, r, g, b))].(color.RGBA64),
+				d.palette[d.closestColor(d.mapper(x, y, r, g, b))].(color.RGBA64),
 				x, y, img,
 			)
 		})

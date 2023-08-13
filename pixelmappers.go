@@ -18,7 +18,7 @@ import (
 // [0, 65535], and must be returned in the same range.
 //
 // It must be thread-safe, as it will be called concurrently.
-type PixelMapper func(x, y int, r, g, b uint16) (uint16, uint16, uint16)
+type pixelMapper func(x, y int, r, g, b uint16) (uint16, uint16, uint16)
 
 // RandomNoiseGrayscale returns a PixelMapper that adds random noise to the
 // color before returning. This is the simplest form of dithering.
@@ -49,8 +49,8 @@ type PixelMapper func(x, y int, r, g, b uint16) (uint16, uint16, uint16)
 // If the noise puts the channel value too high or too low it will be clamped,
 // not wrapped. Basically, don't worry about the values of your min and max
 // distorting the image in an unexpected way.
-func RandomNoiseGrayscale(min, max float32) PixelMapper {
-	return PixelMapper(func(x, y int, r, g, b uint16) (uint16, uint16, uint16) {
+func randomNoiseGrayscale(min, max float32) pixelMapper {
+	return pixelMapper(func(x, y int, r, g, b uint16) (uint16, uint16, uint16) {
 		// These values were taken from Wikipedia:
 		// https://en.wikipedia.org/wiki/Grayscale#Colorimetric_(perceptual_luminance-preserving)_conversion_to_grayscale
 		// 0.2126, 0.7152, 0.0722
@@ -74,8 +74,8 @@ func RandomNoiseGrayscale(min, max float32) PixelMapper {
 //
 // See RandomNoiseGrayscale for more details about values and how this function
 // works.
-func RandomNoiseRGB(minR, maxR, minG, maxG, minB, maxB float32) PixelMapper {
-	return PixelMapper(func(x, y int, r, g, b uint16) (uint16, uint16, uint16) {
+func randomNoiseRGB(minR, maxR, minG, maxG, minB, maxB float32) pixelMapper {
+	return pixelMapper(func(x, y int, r, g, b uint16) (uint16, uint16, uint16) {
 		return RoundClamp(float32(r) + 65535.0*(rand.Float32()*(maxR-minR)+minR)),
 			RoundClamp(float32(g) + 65535.0*(rand.Float32()*(maxG-minG)+minG)),
 			RoundClamp(float32(b) + 65535.0*(rand.Float32()*(maxB-minB)+minB))
@@ -254,7 +254,7 @@ func convThresholdToAddition(scale float32, value uint, max uint) float32 {
 // dithering of color images.
 //
 // Of course, experiment for yourself. And let me know if I'm wrong!
-func Bayer(x, y uint, strength float32) PixelMapper {
+func bayer(x, y uint, strength float32) pixelMapper {
 	var matrix [][]uint
 
 	if x == 0 || y == 0 {
@@ -300,7 +300,7 @@ func Bayer(x, y uint, strength float32) PixelMapper {
 		}
 	}
 
-	return PixelMapper(func(xx, yy int, r, g, b uint16) (uint16, uint16, uint16) {
+	return pixelMapper(func(xx, yy int, r, g, b uint16) (uint16, uint16, uint16) {
 		return RoundClamp(float32(r) + precalc[yy%int(y)][xx%int(x)]),
 			RoundClamp(float32(g) + precalc[yy%int(y)][xx%int(x)]),
 			RoundClamp(float32(b) + precalc[yy%int(y)][xx%int(x)])
@@ -318,7 +318,7 @@ func Bayer(x, y uint, strength float32) PixelMapper {
 // See Bayer for a detailed explanation of strength. You can use this to change the
 // amount the matrix is applied to the image, and to reduce noise. Usually you'll
 // just want to set it to 1.0.
-func PixelMapperFromMatrix(odm OrderedDitherMatrix, strength float32) PixelMapper {
+func pixelMapperFromMatrix(odm OrderedDitherMatrix, strength float32) pixelMapper {
 	ydim := len(odm.Matrix)
 	xdim := len(odm.Matrix[0])
 	scale := 65535.0 * strength
@@ -332,7 +332,7 @@ func PixelMapperFromMatrix(odm OrderedDitherMatrix, strength float32) PixelMappe
 		}
 	}
 
-	return PixelMapper(func(xx, yy int, r, g, b uint16) (uint16, uint16, uint16) {
+	return pixelMapper(func(xx, yy int, r, g, b uint16) (uint16, uint16, uint16) {
 		return RoundClamp(float32(r) + precalc[yy%ydim][xx%xdim]),
 			RoundClamp(float32(g) + precalc[yy%ydim][xx%xdim]),
 			RoundClamp(float32(b) + precalc[yy%ydim][xx%xdim])

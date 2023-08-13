@@ -22,7 +22,7 @@ func main() {
 		color.RGBA{255, 255, 0, 255}, // Yellow
 	}
 	d := dither.NewDitherer(palette)
-	d.Mapper = dither.Bayer(8, 8, 1.0) // Why not?
+	d.SetBayer(8, 8, 1.0) // Why not?
 
 	// GIF settings - all of these are required!
 	opts := gif.Options{

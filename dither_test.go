@@ -95,22 +95,21 @@ func createDitheredImage(input, output string, d *Ditherer, t *testing.T) {
 func TestRandomNoiseGrayscale(t *testing.T) {
 	rand.Seed(1)
 	d := NewDitherer(blackWhite)
-	d.Mapper = RandomNoiseGrayscale(-0.5, 0.5)
+	d.SetRandomGrayscale(-0.5, 0.5)
 	d.SingleThreaded = true
 	ditherAndCompareImage(gradient, "random_noise_grayscale.png", d, t)
 }
 
 func TestRandomNoiseRGB(t *testing.T) {
 	rand.Seed(1)
-	noise := RandomNoiseRGB(-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
 
 	d := NewDitherer(redGreenBlack)
-	d.Mapper = noise
+	d.SetRandomRGB(-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
 	d.SingleThreaded = true
 	ditherAndCompareImage(peppers, "random_noise_rgb_red-green-black.png", d, t)
 
 	d = NewDitherer(redGreenYellowBlack)
-	d.Mapper = noise
+	d.SetRandomRGB(-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
 	d.SingleThreaded = true
 	ditherAndCompareImage(peppers, "random_noise_rgb_red-green-yellow-black.png", d, t)
 }
@@ -150,31 +149,29 @@ func TestBayerGrayscale(t *testing.T) {
 	strength := float32(1.0)
 	d := NewDitherer(blackWhite)
 
-	d.Mapper = Bayer(2, 2, strength)
+	d.SetBayer(2, 2, strength)
 	ditherAndCompareImage(gradient, "bayer_2x2_gradient.png", d, t)
 
-	d.Mapper = Bayer(4, 4, strength)
+	d.SetBayer(4, 4, strength)
 	ditherAndCompareImage(gradient, "bayer_4x4_gradient.png", d, t)
 
-	d.Mapper = Bayer(8, 8, strength)
+	d.SetBayer(8, 8, strength)
 	ditherAndCompareImage(gradient, "bayer_8x8_gradient.png", d, t)
 
-	d.Mapper = Bayer(16, 16, strength)
+	d.SetBayer(16, 16, strength)
 	ditherAndCompareImage(gradient, "bayer_16x16_gradient.png", d, t)
 
-	d.Mapper = Bayer(16, 8, strength)
+	d.SetBayer(16, 8, strength)
 	ditherAndCompareImage(gradient, "bayer_16x8_gradient.png", d, t)
 }
 
 func TestBayerColor(t *testing.T) {
-	bayer16 := Bayer(16, 16, 1.0)
-
 	d := NewDitherer(redGreenBlack)
-	d.Mapper = bayer16
+	d.SetBayer(16, 16, 1.0)
 	ditherAndCompareImage(peppers, "bayer_16x16_red-green-black.png", d, t)
 
 	d = NewDitherer(redGreenYellowBlack)
-	d.Mapper = bayer16
+	d.SetBayer(16, 16, 1.0)
 	ditherAndCompareImage(peppers, "bayer_16x16_red-green-yellow-black.png", d, t)
 }
 
@@ -302,35 +299,35 @@ func TestDitherPaletted(t *testing.T) {
 func TestPixelMapperFromMatrix(t *testing.T) {
 	d := NewDitherer(blackWhite)
 
-	d.Mapper = PixelMapperFromMatrix(ClusteredDot4x4, 1.0)
+	d.SetOrdered(ClusteredDot4x4, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDot4x4.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotDiagonal8x8, 1.0)
+	d.SetOrdered(ClusteredDotDiagonal8x8, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotDiagonal8x8.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(Vertical5x3, 1.0)
+	d.SetOrdered(Vertical5x3, 1.0)
 	ditherAndCompareImage(gradient, "Vertical5x3.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(Horizontal3x5, 1.0)
+	d.SetOrdered(Horizontal3x5, 1.0)
 	ditherAndCompareImage(gradient, "Horizontal3x5.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotDiagonal6x6, 1.0)
+	d.SetOrdered(ClusteredDotDiagonal6x6, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotDiagonal6x6.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotDiagonal8x8_2, 1.0)
+	d.SetOrdered(ClusteredDotDiagonal8x8_2, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotDiagonal8x8_2.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotDiagonal16x16, 1.0)
+	d.SetOrdered(ClusteredDotDiagonal16x16, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotDiagonal16x16_gradient.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDot6x6, 1.0)
+	d.SetOrdered(ClusteredDot6x6, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDot6x6.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotSpiral5x5, 1.0)
+	d.SetOrdered(ClusteredDotSpiral5x5, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotSpiral5x5.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotHorizontalLine, 1.0)
+	d.SetOrdered(ClusteredDotHorizontalLine, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotHorizontalLine.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotVerticalLine, 1.0)
+	d.SetOrdered(ClusteredDotVerticalLine, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotVerticalLine.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDot8x8, 1.0)
+	d.SetOrdered(ClusteredDot8x8, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDot8x8.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDot6x6_2, 1.0)
+	d.SetOrdered(ClusteredDot6x6_2, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDot6x6_2.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDot6x6_3, 1.0)
+	d.SetOrdered(ClusteredDot6x6_3, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDot6x6_3.png", d, t)
-	d.Mapper = PixelMapperFromMatrix(ClusteredDotDiagonal8x8_3, 1.0)
+	d.SetOrdered(ClusteredDotDiagonal8x8_3, 1.0)
 	ditherAndCompareImage(gradient, "ClusteredDotDiagonal8x8_3.png", d, t)
 }
 
@@ -342,11 +339,11 @@ func TestAlpha(t *testing.T) {
 		color.RGBA{0, 255, 0, 255},
 		color.RGBA{0, 0, 255, 255},
 	})
-	d.Mapper = Bayer(4, 4, 1)
+	d.SetBayer(4, 4, 1)
 
 	ditherAndCompareImage(dice, "alpha_bayer.png", d, t)
 
-	d.Mapper = nil
+	d.ClearMapper()
 	d.Matrix = FloydSteinberg
 
 	ditherAndCompareImage(dice, "alpha_floyd-steinberg.png", d, t)
