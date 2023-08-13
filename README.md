@@ -6,9 +6,8 @@ This is a modified version of [dither](https://github.com/makew0rld/dither) Go l
 > If you are looking for Python bindings of dither library, check out [dither-go]() repository.
 
 ## Limitations:
-* `PixelMapper` type and assosiated with this type functions are privated, as they aren't currently supported by Gopy 
-<br>
-(related PR: [#282](https://github.com/go-python/gopy/pull/282))
+* `PixelMapper` type and assosiated with this type functions are privated, as they aren't currently supported by Gopy
+<br>(related PR: https://github.com/go-python/gopy/pull/282)
 * You can't reuse generated `PixelMapper` assosiated functions, because of above limitation
 * Any function that returnes more that one return value, is either privated or ignored during binding generation
 
